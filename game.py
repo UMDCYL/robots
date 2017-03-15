@@ -8,7 +8,7 @@ from CYLGame import StatusPanel
 from CYLGame import PanelBorder
 
 
-class AppleFinder(Game):
+class ROBOTS(Game):
     MAP_WIDTH = 60
     MAP_HEIGHT = 30
     SCREEN_WIDTH = 60
@@ -17,41 +17,36 @@ class AppleFinder(Game):
     MAX_MSG_LEN = SCREEN_WIDTH - MSG_START - 1
     CHAR_WIDTH = 16
     CHAR_HEIGHT = 16
-    GAME_TITLE = "Apple Hunt"
+    GAME_TITLE = "ROBOTS"
     CHAR_SET = "terminal16x16_gs_ro.png"
 
-    APPLE_EATING_RESPONSES = ["Yummy!", "That hit the spot!", "Wow!", "Amazing!", "So good!",
-                              "An apple a day keeps the robots away.", "Yummy in the tummy!", #"Oh my, that was good!",
-                              "Bon appetit", "Ewwww, I think that one had a worm."]
+    STAIR_DESCENT_RESPONSES = ["Maybe there's an exit this way!", "I wonder what's down here?", "Gotta escape these bots!", "Is this the last floor?", "What's this way?"]
 
-    NUM_OF_APPLES = 4
-    NUM_OF_PITS_START = 0
-    NUM_OF_PITS_PER_LEVEL = 8
+    NUM_OF_BOTS_START = 4
+    NUM_OF_BOTS_PER_LEVEL = 4
     MAX_TURNS = 300
 
     PLAYER = '@'
-    APPLE = 'O'
+    STAIRS = '>'
     EMPTY = ' '
-    PIT = '^'
+    ROBOT = 'O'
 
     def __init__(self, random):
         self.random = random
         self.running = True
-        self.in_pit = False
+        self.touching_bot = False
         centerx = self.MAP_WIDTH / 2
         centery = self.MAP_HEIGHT / 2
         self.player_pos = [centerx, centery]
-        self.apples_eaten = 0
-        self.apples_left = 0
-        self.apple_pos = []
+        self.score = 0
         self.objects = []
         self.turns = 0
         self.level = 0
         self.msg_panel = MessagePanel(self.MSG_START, self.MAP_HEIGHT+1, self.SCREEN_WIDTH - self.MSG_START, 5)
         self.status_panel = StatusPanel(0, self.MAP_HEIGHT+1, self.MSG_START, 5)
         self.panels = [self.msg_panel, self.status_panel]
-        self.msg_panel.add("Welcome to "+self.GAME_TITLE+"!!!")
-        self.msg_panel.add("Try to eat as many apples as possible")
+        self.msg_panel.add("Welcome to R0B0TS!!!")
+        self.msg_panel.add("Descend stairs while avoiding robots!")
 
         self.__create_map()
 
@@ -62,15 +57,14 @@ class AppleFinder(Game):
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
 
-        self.place_apples(self.NUM_OF_APPLES)
-        self.place_pits(self.NUM_OF_PITS_START)
+        self.place_stairs(1)
+        self.place_bots(self.NUM_OF_BOTS_START)
 
-    def place_apples(self, count):
-        self.place_objects(self.APPLE, count)
-        self.apples_left = self.apples_left + count
+    def place_stairs(self, count):
+        self.place_objects(self.STAIRS, count)
 
-    def place_pits(self, count):
-        self.place_objects(self.PIT, count)
+    def place_bots(self, count):
+        self.place_objects(self.ROBOT, count)
 
     def place_objects(self, char, count):
         placed_objects = 0
@@ -94,31 +88,49 @@ class AppleFinder(Game):
             self.player_pos[0] -= 1
         if key == "d":
             self.player_pos[0] += 1
+        if key == "q":
+            self.player_pos[1] -= 1
+            self.player_pos[0] -= 1
+        if key == "e":
+            self.player_pos[1] -= 1
+            self.player_pos[0] += 1
+        if key == "c":
+            self.player_pos[1] += 1
+            self.player_pos[0] += 1
+        if key == "z":
+            self.player_pos[1] += 1
+            self.player_pos[0] -= 1
+
         if key == "Q":
             self.running = False
             return
 
         self.player_pos[0] %= self.MAP_WIDTH
         self.player_pos[1] %= self.MAP_HEIGHT
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.APPLE:
-            self.apples_eaten += 1
-            self.apples_left -= 1
-            self.msg_panel += [self.random.choice(list(set(self.APPLE_EATING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
-        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.PIT:
-            self.in_pit = True
-        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
-
-        if self.apples_left == 0:
+        
+        # if player gets to the stairs, the other robots don't get a
+        # chance to take their turn
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.STAIRS:
+            self.score += 1
+            self.msg_panel += [self.random.choice(list(set(self.STAIR_DESCENT_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             self.level += 1
-            self.place_apples(self.NUM_OF_APPLES)
-            self.place_pits(self.NUM_OF_PITS_PER_LEVEL)
+            self.place_stairs(1)
+            self.place_bots(self.NUM_OF_BOTS_PER_LEVEL)
+
+        # if a bot is touching a player, then set touching_bot to TRUE
+        # and also update the map to show the attacking robot
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
+            self.touching_bot = True
+            self.map[(self.player_pos[0], self.player_pos[1])] = self.ROBOT
+        else:
+            self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
 
     def is_running(self):
         return self.running
 
-    def find_closest_apple(self, x, y):
-        apple_pos_dist = []
-        for pos in self.map.get_all_pos(self.APPLE):
+    def find_closest_stairs(self, x, y):
+        stairs_pos_dist = []
+        for pos in self.map.get_all_pos(self.STAIRS):
             for i in range(-1, 2):
                 for j in range(-1, 2):
                     a_x, a_y = pos[0]+(self.SCREEN_WIDTH*i), pos[1]+(self.SCREEN_HEIGHT*j)
@@ -132,18 +144,18 @@ class AppleFinder(Game):
                         direction[1] = 1
                     elif direction[1] < 0:
                         direction[1] = -1
-                    apple_pos_dist += [(dist, direction)]
+                    stairs_pos_dist += [(dist, direction)]
 
-        apple_pos_dist.sort()
-        if len(apple_pos_dist) > 0:
-            return apple_pos_dist[0][1]
+        stairs_pos_dist.sort()
+        if len(stairs_pos_dist) > 0:
+            return stairs_pos_dist[0][1]
         else:
-            raise Exception("We didn't find an apple")
+            raise Exception("We can't find the stairs!")
 
     def get_vars_for_bot(self):
         bot_vars = {}
 
-        x_dir, y_dir = self.find_closest_apple(*self.player_pos)
+        x_dir, y_dir = self.find_closest_stairs(*self.player_pos)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
@@ -151,13 +163,13 @@ class AppleFinder(Game):
         bot_vars = {"x_dir": x_dir_to_char[x_dir], "y_dir": y_dir_to_char[y_dir],
                     "pit_to_east": 0, "pit_to_west": 0, "pit_to_north": 0, "pit_to_south": 0}
 
-        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.PIT:
+        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
             bot_vars["pit_to_east"] = 1
-        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.PIT:
+        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
             bot_vars["pit_to_west"] = 1
-        if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.PIT:
+        if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.ROBOT:
             bot_vars["pit_to_north"] = 1
-        if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.PIT:
+        if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.ROBOT:
             bot_vars["pit_to_south"] = 1
 
         return bot_vars
@@ -165,30 +177,27 @@ class AppleFinder(Game):
     @staticmethod
     def default_prog_for_bot(language):
         if language == GameLanguage.LITTLEPY:
-            return open("apple_bot.lp", "r").read()
+            return open("bot.lp", "r").read()
 
     def get_score(self):
-        return self.apples_eaten
+        return self.score
 
     def draw_screen(self, libtcod, console):
         # End of the game
         if self.turns >= self.MAX_TURNS:
             self.running = False
             self.msg_panel.add("You are out of moves.")
-        elif self.in_pit:
+        elif self.touching_bot:
             self.running = False
-            self.msg_panel += ["You fell into a pit :("]
+            self.msg_panel += ["A robot got you! :( "]
 
         if not self.running:
-            if self.apples_eaten == 0:
-                self.msg_panel += ["You ate "+str(self.apples_eaten)+" apples. Better luck next time :("]
-            else:
-                self.msg_panel += ["You ate "+str(self.apples_eaten)+" apples. Good job!"]
+            self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
 
         libtcod.console_set_default_foreground(console, libtcod.white)
 
         # Update Status
-        self.status_panel["Apples"] = self.apples_eaten
+        self.status_panel["Score"] = self.score
         self.status_panel["Move"] = str(self.turns) + " of " + str(self.MAX_TURNS)
 
         for panel in self.panels:
@@ -197,4 +206,4 @@ class AppleFinder(Game):
 
 if __name__ == '__main__':
     from CYLGame import run
-    run(AppleFinder)
+    run(ROBOTS)
