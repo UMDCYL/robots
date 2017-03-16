@@ -28,6 +28,7 @@ class ROBOTS(Game):
 
     PLAYER = '@'
     STAIRS = '>'
+    WRECKAGE = '<'
     EMPTY = ' '
     ROBOT = 'O'
 
@@ -100,6 +101,10 @@ class ROBOTS(Game):
         if key == "z":
             self.player_pos[1] += 1
             self.player_pos[0] -= 1
+        if key == "t":
+            self.msg_panel += ["TELEP0RT!"]
+            self.player_pos[0] =  self.random.randint(0, self.MAP_WIDTH - 1)
+            self.player_pos[1] =  self.random.randint(0, self.MAP_HEIGHT - 1)
 
         if key == "Q":
             self.running = False
@@ -111,26 +116,83 @@ class ROBOTS(Game):
         # if player gets to the stairs, the other robots don't get a
         # chance to take their turn
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.STAIRS:
-            self.score += 1
+            self.score += self.level * 10
             self.msg_panel += [self.random.choice(list(set(self.STAIR_DESCENT_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             self.level += 1
             self.place_stairs(1)
             self.place_bots(self.NUM_OF_BOTS_PER_LEVEL)
 
+
+
         # if a bot is touching a player, then set touching_bot to TRUE
         # and also update the map to show the attacking robot
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT or \
+            self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
             self.touching_bot = True
-            self.map[(self.player_pos[0], self.player_pos[1])] = self.ROBOT
+            # redraw robot here -- it looks weird if the player is
+            # visible but killed by an invisible robot
+            #self.map[(self.player_pos[0], self.player_pos[1])] = self.ROBOT
         else:
+            # player moved into a spot without a robot
             self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+
+        # go through the map and calculate moves for every robot based
+        # on player's position
+
+        robots = []
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if self.map[(x,y)] == self.ROBOT:
+                    robots.append((x,y))
+
+        # move each robot once
+        for x,y in robots:
+            print("found robot at (%d,%d)" % (x,y))
+            if self.map[(x,y)] == self.WRECKAGE:
+                # this robot got wrecked before it could move...
+                # next robot please.
+                continue
+
+            # find the direction towards the player
+            x_dir, y_dir = self.find_closest_player(x,y)
+            
+            print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
+
+            # get new location modulo map size
+            newpos = ((x+x_dir) % self.MAP_WIDTH, (y+y_dir) % self.MAP_HEIGHT)
+
+            if self.map[newpos] == self.STAIRS:
+                # robot won't step on stairs (7 cycles bad robot luck)
+                continue
+
+            # erase robot in prep to move locations
+            self.map[(x,y)] = self.EMPTY
+
+            # draw the new robot into position and check for collisions
+            if self.map[newpos] == self.ROBOT or self.map[newpos] == self.WRECKAGE:
+                # already a robot here -- collision!
+                print("collision!")
+                self.map[newpos] = self.WRECKAGE
+                self.score += 10
+            else: 
+                self.map[newpos] = self.ROBOT
+
+            # if a bot is touching a player, then set touching_bot to TRUE
+            # and also update the map to show the attacking robot
+            if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
+                self.touching_bot = True
+                break
+
+
 
     def is_running(self):
         return self.running
 
-    def find_closest_stairs(self, x, y):
-        stairs_pos_dist = []
-        for pos in self.map.get_all_pos(self.STAIRS):
+    # find the closest thing (foo) in the map relative to the given
+    # x and y parameter (useful for finding stairs, players, etc.)
+    def find_closest_foo(self, x, y, foo):
+        foo_pos_dist = []
+        for pos in self.map.get_all_pos(foo):
             for i in range(-1, 2):
                 for j in range(-1, 2):
                     a_x, a_y = pos[0]+(self.SCREEN_WIDTH*i), pos[1]+(self.SCREEN_HEIGHT*j)
@@ -144,18 +206,41 @@ class ROBOTS(Game):
                         direction[1] = 1
                     elif direction[1] < 0:
                         direction[1] = -1
-                    stairs_pos_dist += [(dist, direction)]
+                    foo_pos_dist += [(dist, direction)]
 
-        stairs_pos_dist.sort()
-        if len(stairs_pos_dist) > 0:
-            return stairs_pos_dist[0][1]
+        foo_pos_dist.sort()
+        if len(foo_pos_dist) > 0:
+            return foo_pos_dist[0][1]
         else:
-            raise Exception("We can't find the stairs!")
+            raise Exception("We can't find the foo you're looking for!")
+
+    def find_closest_player(self, x, y):
+        foo_pos_dist = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                a_x, a_y = self.player_pos[0]+(self.SCREEN_WIDTH*i), self.player_pos[1]+(self.SCREEN_HEIGHT*j)
+                dist = math.sqrt((a_x-x)**2 + (a_y-y)**2)
+                direction = [a_x-x, a_y-y]
+                if direction[0] > 0:
+                    direction[0] = 1
+                elif direction[0] < 0:
+                    direction[0] = -1
+                if direction[1] > 0:
+                    direction[1] = 1
+                elif direction[1] < 0:
+                    direction[1] = -1
+                foo_pos_dist += [(dist, direction)]
+
+        foo_pos_dist.sort()
+        if len(foo_pos_dist) > 0:
+            return foo_pos_dist[0][1]
+        else:
+            raise Exception("We can't find the foo you're looking for!")
 
     def get_vars_for_bot(self):
         bot_vars = {}
 
-        x_dir, y_dir = self.find_closest_stairs(*self.player_pos)
+        x_dir, y_dir = self.find_closest_foo(self.player_pos[0], self.player_pos[1], self.STAIRS)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
