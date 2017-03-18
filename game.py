@@ -20,6 +20,8 @@ class ROBOTS(Game):
     GAME_TITLE = "ROBOTS"
     CHAR_SET = "terminal16x16_gs_ro.png"
 
+    SENSE_DIST = 20
+
     STAIR_DESCENT_RESPONSES = ["Maybe there's an exit this way!", "I wonder what's down here?", "Gotta escape these bots!", "Is this the last floor?", "What's this way?"]
 
     NUM_OF_BOTS_START = 4
@@ -76,6 +78,13 @@ class ROBOTS(Game):
             if self.map[(x, y)] == self.EMPTY:
                 self.map[(x, y)] = char
                 placed_objects += 1
+
+    def get_robot_positions(self):
+        # returns an array of all x,y values at which there is a robot
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if self.map[(x,y)] == self.ROBOT:
+                    robots.append((x,y))
 
     def handle_key(self, key):
         self.turns += 1
@@ -139,11 +148,7 @@ class ROBOTS(Game):
         # go through the map and calculate moves for every robot based
         # on player's position
 
-        robots = []
-        for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                if self.map[(x,y)] == self.ROBOT:
-                    robots.append((x,y))
+        robots = get_robot_positions()
 
         # move each robot once
         for x,y in robots:
@@ -240,14 +245,27 @@ class ROBOTS(Game):
     def get_vars_for_bot(self):
         bot_vars = {}
 
+        # get values for x_dir and y_dir to direct player towards stairs
         x_dir, y_dir = self.find_closest_foo(self.player_pos[0], self.player_pos[1], self.STAIRS)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
 
         bot_vars = {"x_dir": x_dir_to_char[x_dir], "y_dir": y_dir_to_char[y_dir],
-                    "pit_to_east": 0, "pit_to_west": 0, "pit_to_north": 0, "pit_to_south": 0}
+                    "sense_n": 0, "sense_s": 0, "sense_e": 0, "sense_w": 0,
+                    "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0}
 
+        robots = get_robot_positions()
+
+        # FIXME
+        # go through robots list
+        # get distance to robot
+        # if within sensor range, figure out what sensor
+        # keep closest single robot in each sensor field
+
+
+        # FIXME -- is there an equivalent to pits here? Don't think so,
+        # so probably need to cut this...
         if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
             bot_vars["pit_to_east"] = 1
         if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
