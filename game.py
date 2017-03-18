@@ -72,6 +72,25 @@ class ROBOTS(Game):
                 dists += [max(d_x, d_y)]
         return min(dists)
 
+    def shortest_distance_and_direction(self, x1, y1, x2, y2):
+        dists = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                a_x, a_y = x1 + (self.MAP_WIDTH * i), y1 + (self.MAP_HEIGHT * j)
+                d_x, d_y = abs(a_x - x2), abs(a_y - y2)
+                direction = [a_x-x2, a_y-y2]
+                if direction[0] > 0:
+                    direction[0] = 1
+                elif direction[0] < 0:
+                    direction[0] = -1
+                if direction[1] > 0:
+                    direction[1] = 1
+                elif direction[1] < 0:
+                    direction[1] = -1
+                dists += [(max(d_x, d_y), direction)]
+        dists.sort()
+        return dists[0]
+
     def place_stairs(self, count):
         self.place_objects(self.STAIRS, count)
 
@@ -88,14 +107,16 @@ class ROBOTS(Game):
                 self.map[(x, y)] = char
                 placed_objects += 1
 
-    def get_robot_positions(self):
-        # returns an array of all x,y values at which there is a robot
-        for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                if self.map[(x,y)] == self.ROBOT:
-                    robots.append((x,y))
+    #def get_robot_positions(self):
+    #    # returns an array of all x,y values at which there is a robot
+    #    self.map.get_all_pos(self.ROBOT)
+    #    for x in range(self.MAP_WIDTH):
+    #        for y in range(self.MAP_HEIGHT):
+    #            if self.map[(x,y)] == self.ROBOT:
+    #                self.robots.append((x,y))
 
     def handle_key(self, key):
+        print(self.get_vars_for_bot())
         self.turns += 1
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
@@ -121,8 +142,8 @@ class ROBOTS(Game):
             self.player_pos[0] -= 1
         if key == "t":
             self.msg_panel += ["TELEP0RT!"]
-            self.player_pos[0] =  self.random.randint(0, self.MAP_WIDTH - 1)
-            self.player_pos[1] =  self.random.randint(0, self.MAP_HEIGHT - 1)
+            self.player_pos[0] = self.random.randint(0, self.MAP_WIDTH - 1)
+            self.player_pos[1] = self.random.randint(0, self.MAP_HEIGHT - 1)
 
         if key == "Q":
             self.running = False
@@ -130,7 +151,7 @@ class ROBOTS(Game):
 
         self.player_pos[0] %= self.MAP_WIDTH
         self.player_pos[1] %= self.MAP_HEIGHT
-        
+
         # if player gets to the stairs, the other robots don't get a
         # chance to take their turn
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.STAIRS:
@@ -157,7 +178,7 @@ class ROBOTS(Game):
         # go through the map and calculate moves for every robot based
         # on player's position
 
-        robots = get_robot_positions()
+        robots = self.map.get_all_pos(self.ROBOT)
 
         # move each robot once
         for x,y in robots:
@@ -169,7 +190,7 @@ class ROBOTS(Game):
 
             # find the direction towards the player
             x_dir, y_dir = self.find_closest_player(x,y)
-            
+
             print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
 
             # get new location modulo map size
@@ -188,7 +209,7 @@ class ROBOTS(Game):
                 print("collision!")
                 self.map[newpos] = self.WRECKAGE
                 self.score += 10
-            else: 
+            else:
                 self.map[newpos] = self.ROBOT
 
             # if a bot is touching a player, then set touching_bot to TRUE
@@ -196,8 +217,6 @@ class ROBOTS(Game):
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
                 self.touching_bot = True
                 break
-
-
 
     def is_running(self):
         return self.running
@@ -264,25 +283,20 @@ class ROBOTS(Game):
                     "sense_n": 0, "sense_s": 0, "sense_e": 0, "sense_w": 0,
                     "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0}
 
-        robots = get_robot_positions()
+        robots = self.map.get_all_pos(self.ROBOT)
+        x_dir_to_str = {-1: "w", 1: "e", 0: ""}
+        y_dir_to_str = {-1: "n", 1: "s", 0: ""}
 
-        # FIXME
-        # go through robots list
-        # get distance to robot
-        # if within sensor range, figure out what sensor
-        # keep closest single robot in each sensor field
-
-
-        # FIXME -- is there an equivalent to pits here? Don't think so,
-        # so probably need to cut this...
-        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
-            bot_vars["pit_to_east"] = 1
-        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.ROBOT:
-            bot_vars["pit_to_west"] = 1
-        if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.ROBOT:
-            bot_vars["pit_to_north"] = 1
-        if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.ROBOT:
-            bot_vars["pit_to_south"] = 1
+        for robot_x, robot_y in robots:
+            dist, direction = self.shortest_distance_and_direction(robot_x, robot_y, self.player_pos[0], self.player_pos[1])
+            dir_x, dir_y = direction
+            dir_str = y_dir_to_str[dir_y] + x_dir_to_str[dir_x]
+            if dir_str == "":
+                continue
+            if bot_vars["sense_" + dir_str] == 0:
+                bot_vars["sense_" + dir_str] = dist
+            elif bot_vars["sense_" + dir_str] > dist:
+                bot_vars["sense_" + dir_str] = dist
 
         return bot_vars
 
@@ -290,6 +304,10 @@ class ROBOTS(Game):
     def default_prog_for_bot(language):
         if language == GameLanguage.LITTLEPY:
             return open("bot.lp", "r").read()
+
+    @staticmethod
+    def get_intro():
+        return open("intro.md", "r").read()
 
     def get_score(self):
         return self.score
