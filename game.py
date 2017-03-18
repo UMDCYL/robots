@@ -63,6 +63,15 @@ class ROBOTS(Game):
         self.place_stairs(1)
         self.place_bots(self.NUM_OF_BOTS_START)
 
+    def shortest_distance_between(self, x1, y1, x2, y2):
+        dists = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                a_x, a_y = x1 + (self.MAP_WIDTH * i), y1 + (self.MAP_HEIGHT * j)
+                d_x, d_y = math.abs(a_x - x2), math.abs(a_y - y2)
+                dists += [max(d_x, d_y)]
+        return min(dists)
+
     def place_stairs(self, count):
         self.place_objects(self.STAIRS, count)
 
