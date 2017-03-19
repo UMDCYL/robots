@@ -162,8 +162,6 @@ class ROBOTS(Game):
             self.place_stairs(1)
             self.place_bots(self.NUM_OF_BOTS_PER_LEVEL)
 
-
-
         # if a bot is touching a player, then set touching_bot to TRUE
         # and also update the map to show the attacking robot
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT or \
@@ -182,15 +180,15 @@ class ROBOTS(Game):
         robots = self.map.get_all_pos(self.ROBOT)
 
         # move each robot once
-        for x,y in robots:
+        for x, y in robots:
             print("found robot at (%d,%d)" % (x,y))
-            if self.map[(x,y)] == self.WRECKAGE:
+            if self.map[(x, y)] == self.WRECKAGE:
                 # this robot got wrecked before it could move...
                 # next robot please.
                 continue
 
             # find the direction towards the player
-            x_dir, y_dir = self.find_closest_player(x,y)
+            x_dir, y_dir = self.find_closest_player(x, y)
 
             print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
 
@@ -202,7 +200,7 @@ class ROBOTS(Game):
                 continue
 
             # erase robot in prep to move locations
-            self.map[(x,y)] = self.EMPTY
+            self.map[(x, y)] = self.EMPTY
 
             # draw the new robot into position and check for collisions
             if self.map[newpos] == self.ROBOT or self.map[newpos] == self.WRECKAGE:
@@ -309,6 +307,18 @@ class ROBOTS(Game):
     @staticmethod
     def get_intro():
         return open("intro.md", "r").read()
+
+    @staticmethod
+    def get_move_consts():
+        consts = Game.get_move_consts()
+        consts.update({"teleport": ord("t")})
+        return consts
+
+    @staticmethod
+    def get_move_names():
+        names = Game.get_move_names()
+        names.update({ord("t"): "Teleport"})
+        return names
 
     def get_score(self):
         return self.score
