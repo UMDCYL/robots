@@ -118,6 +118,7 @@ class ROBOTS(Game):
     def handle_key(self, key):
         print(self.get_vars_for_bot())
         self.turns += 1
+        self.score += 1
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
         if key == "w":
