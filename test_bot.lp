@@ -67,3 +67,35 @@ if (sense_sw > 0 and sense_sw < 3) {
 if (sense_nw > 0 and sense_nw < 3) {
     move = teleport
 }
+
+if (junk_s and move is south) {
+    move = teleport
+}
+
+if (junk_n and move is north) {
+    move = teleport
+}
+
+if (junk_e and move is east) {
+    move = teleport
+}
+
+if (junk_w and move is west) {
+    move = teleport
+}
+
+if (junk_ne and move is northeast) {
+    move = teleport
+}
+
+if (junk_se and move is southeast) {
+    move = teleport
+}
+
+if (junk_nw and move is northwest) {
+    move = teleport
+}
+
+if (junk_sw and move is southwest) {
+    move = teleport
+}
