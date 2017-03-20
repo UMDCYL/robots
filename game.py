@@ -8,6 +8,9 @@ from CYLGame import StatusPanel
 from CYLGame import PanelBorder
 
 
+DEBUG = False
+
+
 class ROBOTS(Game):
     MAP_WIDTH = 60
     MAP_HEIGHT = 30
@@ -47,8 +50,8 @@ class ROBOTS(Game):
         self.objects = []
         self.turns = 0
         self.level = 1
-        self.msg_panel = MessagePanel(self.MSG_START, self.MAP_HEIGHT+1, self.SCREEN_WIDTH - self.MSG_START, 5)
-        self.status_panel = StatusPanel(0, self.MAP_HEIGHT+1, self.MSG_START, 5)
+        self.msg_panel = MessagePanel(self.MSG_START, self.MAP_HEIGHT + 1, self.SCREEN_WIDTH - self.MSG_START, 5)
+        self.status_panel = StatusPanel(0, self.MAP_HEIGHT + 1, self.MSG_START, 5)
         self.panels = [self.msg_panel, self.status_panel]
         self.msg_panel.add("Welcome to R0B0TS!!!")
         self.msg_panel.add("Descend stairs while avoiding robots!")
@@ -56,15 +59,15 @@ class ROBOTS(Game):
         self.__create_map()
 
     def __create_map(self):
-        self.map = MapPanel(0, 0, self.MAP_WIDTH, self.MAP_HEIGHT+1, self.EMPTY,
+        self.map = MapPanel(0, 0, self.MAP_WIDTH, self.MAP_HEIGHT + 1, self.EMPTY,
                             border=PanelBorder.create(bottom="-"))
 
         self.panels += [self.map]
         self.place_stairs(1)
         self.place_bots(self.NUM_OF_BOTS_START * self.level)
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
-        print(self.get_vars_for_bot()) # need sensors before turn
-
+        if DEBUG:
+            print(self.get_vars_for_bot())  # need sensors before turn
 
     def shortest_distance_between(self, x1, y1, x2, y2):
         dists = []
@@ -81,7 +84,7 @@ class ROBOTS(Game):
             for j in range(-1, 2):
                 a_x, a_y = x1 + (self.MAP_WIDTH * i), y1 + (self.MAP_HEIGHT * j)
                 d_x, d_y = abs(a_x - x2), abs(a_y - y2)
-                direction = [a_x-x2, a_y-y2]
+                direction = [a_x - x2, a_y - y2]
                 if direction[0] > 0:
                     direction[0] = 1
                 elif direction[0] < 0:
@@ -113,7 +116,7 @@ class ROBOTS(Game):
     def wipe_map(self):
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
-                self.map[(x,y)] == self.EMPTY
+                self.map[(x, y)] == self.EMPTY
 
     def handle_key(self, key):
         self.turns += 1
@@ -171,7 +174,6 @@ class ROBOTS(Game):
             # if a player is touching wreckage, set touching_wreckage to
             # true
             self.touching_wreckage = True
-
         else:
             # in the previous two cases, the player died and we don't
             # want to draw the "live" player over the object that killed
@@ -186,7 +188,8 @@ class ROBOTS(Game):
 
         # move each robot once
         for x, y in robots:
-            print("found robot at (%d,%d)" % (x,y))
+            if DEBUG:
+                print("found robot at (%d,%d)" % (x, y))
             if self.map[(x, y)] == self.WRECKAGE:
                 # this robot got wrecked before it could move...
                 # next robot please.
@@ -195,10 +198,11 @@ class ROBOTS(Game):
             # find the direction towards the player
             x_dir, y_dir = self.find_closest_player(x, y)
 
-            print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
+            if DEBUG:
+                print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
 
             # get new location modulo map size
-            newpos = ((x+x_dir) % self.MAP_WIDTH, (y+y_dir) % self.MAP_HEIGHT)
+            newpos = ((x + x_dir) % self.MAP_WIDTH, (y + y_dir) % self.MAP_HEIGHT)
 
             if self.map[newpos] == self.STAIRS:
                 # robot won't step on stairs (7 cycles bad robot luck)
@@ -210,7 +214,8 @@ class ROBOTS(Game):
             # draw the new robot into position and check for collisions
             if self.map[newpos] == self.ROBOT or self.map[newpos] == self.WRECKAGE:
                 # already a robot here -- collision!
-                print("collision!")
+                if DEBUG:
+                    print("collision!")
                 self.map[newpos] = self.WRECKAGE
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
                 self.score += 10
@@ -222,10 +227,11 @@ class ROBOTS(Game):
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
                 self.touching_bot = True
                 break
-        
+
         # vars should be gotten at the end of handle_turn, because vars
         # affect the *next* turn...
-        print(self.get_vars_for_bot())
+        if DEBUG:
+            print(self.get_vars_for_bot())
 
     def is_running(self):
         return self.running
@@ -237,9 +243,9 @@ class ROBOTS(Game):
         for pos in self.map.get_all_pos(foo):
             for i in range(-1, 2):
                 for j in range(-1, 2):
-                    a_x, a_y = pos[0]+(self.SCREEN_WIDTH*i), pos[1]+(self.SCREEN_HEIGHT*j)
-                    dist = math.sqrt((a_x-x)**2 + (a_y-y)**2)
-                    direction = [a_x-x, a_y-y]
+                    a_x, a_y = pos[0] + (self.SCREEN_WIDTH * i), pos[1] + (self.SCREEN_HEIGHT * j)
+                    dist = math.sqrt((a_x - x)**2 + (a_y - y)**2)
+                    direction = [a_x - x, a_y - y]
                     if direction[0] > 0:
                         direction[0] = 1
                     elif direction[0] < 0:
@@ -260,9 +266,9 @@ class ROBOTS(Game):
         foo_pos_dist = []
         for i in range(-1, 2):
             for j in range(-1, 2):
-                a_x, a_y = self.player_pos[0]+(self.SCREEN_WIDTH*i), self.player_pos[1]+(self.SCREEN_HEIGHT*j)
-                dist = math.sqrt((a_x-x)**2 + (a_y-y)**2)
-                direction = [a_x-x, a_y-y]
+                a_x, a_y = self.player_pos[0] + (self.SCREEN_WIDTH * i), self.player_pos[1] + (self.SCREEN_HEIGHT * j)
+                dist = math.sqrt((a_x - x)**2 + (a_y - y)**2)
+                direction = [a_x - x, a_y - y]
                 if direction[0] > 0:
                     direction[0] = 1
                 elif direction[0] < 0:
@@ -298,35 +304,43 @@ class ROBOTS(Game):
 
         if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
             bot_vars["junk_e"] = 1
-            print("junk to east")
+            if DEBUG:
+                print("junk to east")
 
         if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
             bot_vars["junk_w"] = 1
-            print("junk to west")
+            if DEBUG:
+                print("junk to west")
 
         if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_n"] = 1
-            print("junk to north")
+            if DEBUG:
+                print("junk to north")
 
         if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_s"] = 1
-            print("junk to south")
+            if DEBUG:
+                print("junk to south")
 
         if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_ne"] = 1
-            print("junk to northeast")
+            if DEBUG:
+                print("junk to northeast")
 
         if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_nw"] = 1
-            print("junk to northwest")
+            if DEBUG:
+                print("junk to northwest")
 
         if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_se"] = 1
-            print("junk to southeast")
+            if DEBUG:
+                print("junk to southeast")
 
         if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
             bot_vars["junk_sw"] = 1
-            print("junk to southwest")
+            if DEBUG:
+                print("junk to southwest")
 
         robots = self.map.get_all_pos(self.ROBOT)
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
@@ -335,7 +349,8 @@ class ROBOTS(Game):
         # set sensor value to distance to closest bot in range
         for robot_x, robot_y in robots:
             dist, direction = self.shortest_distance_and_direction(robot_x, robot_y, self.player_pos[0], self.player_pos[1])
-            print("dist: %s direction: %s" % (dist, direction))
+            if DEBUG:
+                print("dist: %s direction: %s" % (dist, direction))
             dir_x, dir_y = direction
             dir_str = y_dir_to_str[dir_y] + x_dir_to_str[dir_x]
             if dir_str == "":

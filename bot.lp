@@ -1,4 +1,4 @@
-# Apple Example Bot
+# Robots Example Bot
 # Name: Example Bot
 # You must set move to teleport, east, west, south, north, northeast, northwest, southeast, or southwest to move in the respective directions.
 # Any invalid move will be taken as no move.
