@@ -36,43 +36,74 @@ if x_dir is west and y_dir is south {
     move = southwest
 }
 
-
 # once we can test for < and > these should be changed.
 # I'd also like to do something like:
-# sense_dist = sense_n + sense_s + sense_e + sense_w + sense_nw + sense_ne + sense_se + sense_sw
-# if sense_dist < 3 {
-#	move = teleport
-# }
-# ...  but for now this serviceable for testing
 
-if (sense_n is 3) {
-    move = teleport
+jump = 3
+
+if sense_n and sense_n < jump {
+	move = teleport
 }
 
-if (sense_s is 3) {
-    move = teleport
+if sense_ne and sense_ne < jump {
+	move = teleport
 }
 
-if (sense_e is 3) {
-    move = teleport
+if sense_nw and sense_nw < jump {
+	move = teleport
 }
 
-if (sense_w is 3) {
-    move = teleport
+if sense_s and sense_s < jump {
+	move = teleport
 }
 
-if (sense_ne is 3) {
-    move = teleport
+if sense_sw and sense_sw < jump {
+	move = teleport
 }
 
-if (sense_nw is 3) {
-    move = teleport
+if sense_se and sense_se < jump {
+	move = teleport
 }
 
-if (sense_sw is 3) {
-    move = teleport
+if sense_e and sense_e < jump {
+	move = teleport
 }
 
-if (sense_se is 3) {
-    move = teleport
+if sense_w and sense_w < jump {
+	move = teleport
 }
+
+if junk_e and move is east {
+	move = teleport
+}
+
+if junk_w and move is west {
+	move = teleport
+}
+
+if junk_n and move is north {
+	move = teleport
+}
+
+if junk_s and move is south {
+	move = teleport
+}
+	
+if junk_ne and move is northeast {
+	move = teleport
+}
+
+if junk_nw and move is northwest {
+	move = teleport
+}
+	
+if junk_se and move is southeast {
+	move = teleport
+}
+
+if junk_sw and move is southwest {
+	move = teleport
+}
+
+
+

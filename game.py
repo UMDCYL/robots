@@ -24,6 +24,8 @@ class ROBOTS(Game):
 
     STAIR_DESCENT_RESPONSES = ["Maybe there's an exit this way!", "I wonder what's down here?", "Gotta escape these bots!", "Is this the last floor?", "What's this way?"]
 
+    ROBOT_CRASH_RESPONSES = ["**CRASH!!!***", "KABL00IE!", "*SMASH* CLATTER! *TINKLE*", "KA-B00M!", "!!B00M!!", "BING B0NG CLANK!"]
+
     NUM_OF_BOTS_START = 4
     NUM_OF_BOTS_PER_LEVEL = 4
     MAX_TURNS = 300
@@ -38,6 +40,7 @@ class ROBOTS(Game):
         self.random = random
         self.running = True
         self.touching_bot = False
+        self.touching_wreckage = False
         centerx = self.MAP_WIDTH / 2
         centery = self.MAP_HEIGHT / 2
         self.player_pos = [centerx, centery]
@@ -56,12 +59,13 @@ class ROBOTS(Game):
     def __create_map(self):
         self.map = MapPanel(0, 0, self.MAP_WIDTH, self.MAP_HEIGHT+1, self.EMPTY,
                             border=PanelBorder.create(bottom="-"))
+
         self.panels += [self.map]
-
-        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
-
         self.place_stairs(1)
         self.place_bots(self.NUM_OF_BOTS_START * (self.level + 1))
+        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+        print(self.get_vars_for_bot()) # need sensors before turn
+
 
     def shortest_distance_between(self, x1, y1, x2, y2):
         dists = []
@@ -113,7 +117,6 @@ class ROBOTS(Game):
                 self.map[(x,y)] == self.EMPTY
 
     def handle_key(self, key):
-        print(self.get_vars_for_bot())
         self.turns += 1
         self.score += 1
 
@@ -162,12 +165,13 @@ class ROBOTS(Game):
 
         # if a bot is touching a player, then set touching_bot to TRUE
         # and also update the map to show the attacking robot
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT or \
-            self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
             self.touching_bot = True
-            # redraw robot here -- it looks weird if the player is
-            # visible but killed by an invisible robot
-            #self.map[(self.player_pos[0], self.player_pos[1])] = self.ROBOT
+
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
+            self.touching_wreckage = True
+
+
         else:
             # player moved into a spot without a robot
             self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
@@ -205,6 +209,7 @@ class ROBOTS(Game):
                 # already a robot here -- collision!
                 print("collision!")
                 self.map[newpos] = self.WRECKAGE
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
                 self.score += 10
             else:
                 self.map[newpos] = self.ROBOT
@@ -214,6 +219,10 @@ class ROBOTS(Game):
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
                 self.touching_bot = True
                 break
+        
+        # vars should be gotten at the end of handle_turn, because vars
+        # affect the *next* turn...
+        print(self.get_vars_for_bot())
 
     def is_running(self):
         return self.running
@@ -278,14 +287,52 @@ class ROBOTS(Game):
 
         bot_vars = {"x_dir": x_dir_to_char[x_dir], "y_dir": y_dir_to_char[y_dir],
                     "sense_n": 0, "sense_s": 0, "sense_e": 0, "sense_w": 0,
-                    "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0}
+                    "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0,
+                    "junk_e": 0, "junk_w": 0, "junk_n": 0, "junk_s": 0,
+                    "junk_ne": 0, "junk_se": 0, "junk_sw": 0, "junk_se": 0}
+
+        # detect wreckage in the 8 movement directions:
+
+        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
+            bot_vars["junk_e"] = 1
+            print("junk to east")
+
+        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
+            bot_vars["junk_w"] = 1
+            print("junk to west")
+
+        if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_n"] = 1
+            print("junk to north")
+
+        if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_s"] = 1
+            print("junk to south")
+
+        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_ne"] = 1
+            print("junk to northeast")
+
+        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_nw"] = 1
+            print("junk to northwest")
+
+        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_se"] = 1
+            print("junk to southeast")
+
+        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
+            bot_vars["junk_sw"] = 1
+            print("junk to southwest")
 
         robots = self.map.get_all_pos(self.ROBOT)
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
         y_dir_to_str = {-1: "n", 1: "s", 0: ""}
 
+        # set sensor value to distance to closest bot in range
         for robot_x, robot_y in robots:
             dist, direction = self.shortest_distance_and_direction(robot_x, robot_y, self.player_pos[0], self.player_pos[1])
+            print("dist: %s direction: %s" % (dist, direction))
             dir_x, dir_y = direction
             dir_str = y_dir_to_str[dir_y] + x_dir_to_str[dir_x]
             if dir_str == "":
@@ -329,6 +376,9 @@ class ROBOTS(Game):
         elif self.touching_bot:
             self.running = False
             self.msg_panel += ["A robot got you! :( "]
+        elif self.touching_wreckage:
+            self.running = False
+            self.msg_panel += ["You ran into a pile of junk! :("]
 
         if not self.running:
             self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
