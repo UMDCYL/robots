@@ -32,20 +32,19 @@ The player robot has many sensor variables it can use to help inform its moves.
 **Robots**: the variables `sense_X` where `X` is one of `n`, `s`, `e`, `w`, `ne`, `nw`, `se`, or `sw` store the distance to the robot closest to the player in the given sensor area. The four cardinal sensors are in a direct line vertically or horizontally with the player. The four diagonal sensor zones are the remaining square areas in between the four cardinal direction sensors.
 
 Example:
-```
-if sense_ne < 0 {
-	move = southeast
-}
-```
+
+	if sense_ne is 0 {  
+		move = northeast  
+	}  
+
 Note that Little Python now supports the inequality comparison operators `<`,`>`, `<=` and `>=`.
 
 **Wreckage**: When robots crash they leave behind wreckage that will destroy other robots. These are like pits in the Apple Hunt game. Accordingly, there are 8 sensors that test the adjacent cells for wreckage. Those sensors are named `junk_X` where `X` is one of `n`, `s`, `e`, `w`, `ne`, `nw`, `se`, or `sw`. 
 
 Example:
-```
-if junk_e {
-	move = west
-}
-```
+
+	if junk_e {  
+		move = west  
+	}  
 
 
