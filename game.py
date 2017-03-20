@@ -113,11 +113,6 @@ class ROBOTS(Game):
                 self.map[(x, y)] = char
                 placed_objects += 1
 
-    def wipe_map(self):
-        for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                self.map[(x, y)] == self.EMPTY
-
     def handle_key(self, key):
         self.turns += 1
         self.score += 1
