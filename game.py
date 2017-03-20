@@ -27,7 +27,6 @@ class ROBOTS(Game):
     ROBOT_CRASH_RESPONSES = ["**CRASH!!!***", "KABL00IE!", "*SMASH* CLATTER! *TINKLE*", "KA-B00M!", "!!B00M!!", "BING B0NG CLANK!"]
 
     NUM_OF_BOTS_START = 4
-    NUM_OF_BOTS_PER_LEVEL = 4
     MAX_TURNS = 300
 
     PLAYER = '@'
@@ -47,7 +46,7 @@ class ROBOTS(Game):
         self.score = 0
         self.objects = []
         self.turns = 0
-        self.level = 0
+        self.level = 1
         self.msg_panel = MessagePanel(self.MSG_START, self.MAP_HEIGHT+1, self.SCREEN_WIDTH - self.MSG_START, 5)
         self.status_panel = StatusPanel(0, self.MAP_HEIGHT+1, self.MSG_START, 5)
         self.panels = [self.msg_panel, self.status_panel]
@@ -62,7 +61,7 @@ class ROBOTS(Game):
 
         self.panels += [self.map]
         self.place_stairs(1)
-        self.place_bots(self.NUM_OF_BOTS_START * (self.level + 1))
+        self.place_bots(self.NUM_OF_BOTS_START * self.level)
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         print(self.get_vars_for_bot()) # need sensors before turn
 

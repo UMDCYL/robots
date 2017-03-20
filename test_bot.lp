@@ -4,7 +4,8 @@
 # Any invalid move will be taken as no move.
 # You have three types of sensors: stairs, bots, and wreckage
 # STAIRS: the stairs are pointed to by x_dir and y_dir
-# BOTS: You have 8 sensor zones; directly north, south, east and west of you (4) and the 
+# BOTS: You have 8 sensor zones; directly north, south, east and west of you and the remaining diagonal regions (sense_n, sense_e, sense_w, sense_s, sense_ne, sense_nw, sense_se, sense_sw). The value of the sensor is the distance to the closest bot in the sensor.
+# WRECKAGE: When bots crash, they leave wreckage. The var 'junk_X' is set to 1 when wreckage is directly adjacent to the player (where X is one of n, s, e, w, ne, se, sw, or se).
 
 if x_dir is east {
   move = east
@@ -18,91 +19,5 @@ if y_dir is north {
 if y_dir is south {
   move = south
 }
-
-if x_dir is east and y_dir is north {
-    move = northeast
-}
-
-if x_dir is east and y_dir is south {
-    move = southeast
-}
-
-if x_dir is west and y_dir is north {
-    move = northwest
-}
-
-if x_dir is west and y_dir is south {
-    move = southwest
-}
-
-# once we can test for < and > these should be changed.
-# I'd also like to do something like:
-
-jump = 3
-
-if sense_n and sense_n < jump {
-	move = teleport
-}
-
-if sense_ne and sense_ne < jump {
-	move = teleport
-}
-
-if sense_nw and sense_nw < jump {
-	move = teleport
-}
-
-if sense_s and sense_s < jump {
-	move = teleport
-}
-
-if sense_sw and sense_sw < jump {
-	move = teleport
-}
-
-if sense_se and sense_se < jump {
-	move = teleport
-}
-
-if sense_e and sense_e < jump {
-	move = teleport
-}
-
-if sense_w and sense_w < jump {
-	move = teleport
-}
-
-if junk_e and move is east {
-	move = teleport
-}
-
-if junk_w and move is west {
-	move = teleport
-}
-
-if junk_n and move is north {
-	move = teleport
-}
-
-if junk_s and move is south {
-	move = teleport
-}
-	
-if junk_ne and move is northeast {
-	move = teleport
-}
-
-if junk_nw and move is northwest {
-	move = teleport
-}
-	
-if junk_se and move is southeast {
-	move = teleport
-}
-
-if junk_sw and move is southwest {
-	move = teleport
-}
-
 
 
