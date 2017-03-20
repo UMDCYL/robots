@@ -1,6 +1,6 @@
 # ROBOTS
 
-You're trapped in a factory full of malfunctioning robots! You must run away from the robots by avoiding them and attempting to go downstairs to the next level of the factory. Fortunately, you have use of several sensors and can also teleport.
+You're a robot trapped in a factory full of malfunctioning robots! You must run away from the robots because if they touch you it will destroy you. (They're mean robots!) Going downstairs to the next level of the factory can buy you some time. Fortunately, you have use of several sensors and can also teleport.
 
 # Rules
 
@@ -14,7 +14,10 @@ If robots touch a scrap heap, they are destroyed.
 
 If a robot touches a player, or a player touches a scrap heap, the game is over.
 
-Points are awarded for each turn survived, descending stairs, and making robots crash into each other.
+Points are awarded in the following ways:
+ * one point per turn survived
+ * (10 * level_num) for reaching the stairs
+ * 10 points every time a robot crashes
 
 # Motion
 
@@ -30,17 +33,19 @@ The player robot has many sensor variables it can use to help inform its moves.
 
 Example:
 ```
-if sense_ne > 0 {
+if sense_ne < 0 {
 	move = southeast
 }
 ```
-Note that Little Python now supports the inequality comparison operators `<`,`>`, `<=` and `>=`.
+Note that Little Python now supports the inequality comparison operators `<`,`>;`, `<=` and `>=`.
 
 **Wreckage**: When robots crash they leave behind wreckage that will destroy other robots. These are like pits in the Apple Hunt game. Accordingly, there are 8 sensors that test the adjacent cells for wreckage. Those sensors are named `junk_X` where `X` is one of `n`, `s`, `e`, `w`, `ne`, `nw`, `se`, or `sw`. 
 
-# Scoring
+Example:
+```
+if junk_e {
+	move = west
+}
+```
 
-Points are awarded in the following ways:
- * one point per turn survived
- * (10 * level_num) for reaching the stairs
- * 10 points every time a robot crashes
+
