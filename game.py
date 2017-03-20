@@ -8,7 +8,7 @@ from CYLGame import StatusPanel
 from CYLGame import PanelBorder
 
 
-DEBUG = True
+DEBUG = False
 
 
 class ROBOTS(Game):
@@ -344,7 +344,8 @@ class ROBOTS(Game):
         # set sensor value to distance to closest bot in range
         for robot_x, robot_y in robots:
             dist, direction = self.shortest_distance_and_direction(robot_x, robot_y, self.player_pos[0], self.player_pos[1])
-            print("dist: %s direction: %s" % (dist, direction))
+            if DEBUG:
+                print("dist: %s direction: %s" % (dist, direction))
             dir_x, dir_y = direction
             dir_str = y_dir_to_str[dir_y] + x_dir_to_str[dir_x]
             if dir_str == "":
