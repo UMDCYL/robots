@@ -167,12 +167,16 @@ class ROBOTS(Game):
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
             self.touching_bot = True
 
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
+            # if a player is touching wreckage, set touching_wreckage to
+            # true
             self.touching_wreckage = True
 
-
         else:
-            # player moved into a spot without a robot
+            # in the previous two cases, the player died and we don't
+            # want to draw the "live" player over the object that killed
+            # them. In *this* case, the move was a success, so we want
+            # to draw the player onto the spot.
             self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
 
         # go through the map and calculate moves for every robot based
