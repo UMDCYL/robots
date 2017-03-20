@@ -61,7 +61,7 @@ class ROBOTS(Game):
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
 
         self.place_stairs(1)
-        self.place_bots(self.NUM_OF_BOTS_START)
+        self.place_bots(self.NUM_OF_BOTS_START * (self.level + 1))
 
     def shortest_distance_between(self, x1, y1, x2, y2):
         dists = []
@@ -107,13 +107,10 @@ class ROBOTS(Game):
                 self.map[(x, y)] = char
                 placed_objects += 1
 
-    #def get_robot_positions(self):
-    #    # returns an array of all x,y values at which there is a robot
-    #    self.map.get_all_pos(self.ROBOT)
-    #    for x in range(self.MAP_WIDTH):
-    #        for y in range(self.MAP_HEIGHT):
-    #            if self.map[(x,y)] == self.ROBOT:
-    #                self.robots.append((x,y))
+    def wipe_map(self):
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                self.map[(x,y)] == self.EMPTY
 
     def handle_key(self, key):
         print(self.get_vars_for_bot())
@@ -159,8 +156,9 @@ class ROBOTS(Game):
             self.score += self.level * 10
             self.msg_panel += [self.random.choice(list(set(self.STAIR_DESCENT_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             self.level += 1
-            self.place_stairs(1)
-            self.place_bots(self.NUM_OF_BOTS_PER_LEVEL)
+
+            # initialize new map
+            self.__create_map()
 
         # if a bot is touching a player, then set touching_bot to TRUE
         # and also update the map to show the attacking robot
