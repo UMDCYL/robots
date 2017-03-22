@@ -47,4 +47,4 @@ Example:
 		move = west  
 	}  
 
-
+**Level and Number of Bots Remaining**: The variable `level` holds the current level of the robot factory, and the variable `numbots` holds the remaining number of bots on the current level. 
