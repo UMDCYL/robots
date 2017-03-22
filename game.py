@@ -8,7 +8,7 @@ from CYLGame import StatusPanel
 from CYLGame import PanelBorder
 
 
-DEBUG = False
+DEBUG = True
 
 
 class ROBOTS(Game):
@@ -181,6 +181,9 @@ class ROBOTS(Game):
 
         robots = self.map.get_all_pos(self.ROBOT)
 
+        # sort robots list by closeness to player -- fixes issue #1
+        robots = sorted(robots, key=lambda x: self.shortest_distance_and_direction(x[0], x[1], self.player_pos[0], self.player_pos[1])[0])
+
         # move each robot once
         for x, y in robots:
             if DEBUG:
@@ -210,7 +213,7 @@ class ROBOTS(Game):
             if self.map[newpos] == self.ROBOT or self.map[newpos] == self.WRECKAGE:
                 # already a robot here -- collision!
                 if DEBUG:
-                    print("collision!")
+                    print("collision with robot at (%s)!" % str(newpos))
                 self.map[newpos] = self.WRECKAGE
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
                 self.score += 10
