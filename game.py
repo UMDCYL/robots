@@ -341,10 +341,8 @@ class ROBOTS(Game):
         robots = self.map.get_all_pos(self.ROBOT)
 
         bot_vars["numbots"] = len(robots)
-        print("numbots: %d" % (bot_vars["numbots"]))
 
         bot_vars["level"] = self.level
-        print("level: %d" % (bot_vars["level"]))
 
 
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
