@@ -8,7 +8,7 @@ from CYLGame import StatusPanel
 from CYLGame import PanelBorder
 
 
-DEBUG = True
+DEBUG = False
 
 
 class ROBOTS(Game):
