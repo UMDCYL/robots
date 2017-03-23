@@ -160,6 +160,8 @@ class ROBOTS(Game):
             # initialize new map
             self.__create_map()
 
+            return # robots don't get to move 
+
         # if a bot is touching a player, then set touching_bot to TRUE
         # and also update the map to show the attacking robot
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
