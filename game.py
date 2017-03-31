@@ -298,7 +298,7 @@ class ROBOTS(Game):
                     "sense_n": 0, "sense_s": 0, "sense_e": 0, "sense_w": 0,
                     "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0,
                     "junk_e": 0, "junk_w": 0, "junk_n": 0, "junk_s": 0,
-                    "junk_ne": 0, "junk_se": 0, "junk_sw": 0, "junk_se": 0,
+                    "junk_ne": 0, "junk_nw": 0, "junk_sw": 0, "junk_se": 0,
                     "numbots": 0, "level": 0}
 
         # detect wreckage in the 8 movement directions:
